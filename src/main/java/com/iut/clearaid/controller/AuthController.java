@@ -25,6 +25,7 @@ public class AuthController {
     PasswordEncoder encoder;
     @Autowired
     JwtUtil jwtUtils;
+
     @PostMapping("/signin")
     public String authenticateUser(@RequestBody SignInObject user) {
         Authentication authentication = authenticationManager.authenticate(
@@ -34,8 +35,12 @@ public class AuthController {
                 )
         );
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        return jwtUtils.generateToken(userDetails.getUsername());
+        return jwtUtils.generateToken(
+                userDetails.getUsername(),
+                userRepository.findIdByUsername(userDetails.getUsername())
+        );
     }
+
     @PostMapping("/signup")
     public String registerUser(@RequestBody SignInObject user) {
         if (userRepository.existsByUsername(user.getUsername())) {
