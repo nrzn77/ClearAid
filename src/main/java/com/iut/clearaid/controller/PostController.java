@@ -4,6 +4,7 @@ import com.iut.clearaid.model.entity.Post;
 import com.iut.clearaid.security.JwtUtil;
 import com.iut.clearaid.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -52,24 +53,49 @@ public class PostController {
 
     // Update Post
     @PutMapping("/{id}")
-    public ResponseEntity<Post> updatePost(@PathVariable Long id, @RequestBody Post post) {
-        return postService.getPostById(id)
+    public ResponseEntity<?> updatePost(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long id,
+            @RequestBody Post updatedPost) {
+
+        Long userId = jwtUtil.getUserIdFromToken(token.replace("Bearer ", ""));
+
+        return (ResponseEntity<Post>) postService.getPostById(id)
                 .map(existingPost -> {
-                    post.setId(id); // ensure the ID stays the same
-                    return ResponseEntity.ok(postService.savePost(post));
+                    // ensure the post belongs to the user
+                    if (!existingPost.getAuthId().equals(userId)) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                    }
+
+                    // update only allowed fields
+                    existingPost.setTitle(updatedPost.getTitle());
+                    existingPost.setPost(updatedPost.getPost());
+                    existingPost.setMoney(updatedPost.getMoney());
+
+                    return ResponseEntity.ok(postService.savePost(existingPost));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // Delete Post
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
-        if (postService.getPostById(id).isPresent()) {
-            postService.deletePost(id);
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<?> deletePost(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long id) {
+
+        Long userId = jwtUtil.getUserIdFromToken(token.replace("Bearer ", ""));
+
+        return postService.getPostById(id)
+                .map(existingPost -> {
+                    // ensure the post belongs to the user
+                    if (!existingPost.getAuthId().equals(userId)) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                    }
+
+                    postService.deletePost(id);
+                    return ResponseEntity.noContent().build();
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     // Custom: Get Posts by Author ID
