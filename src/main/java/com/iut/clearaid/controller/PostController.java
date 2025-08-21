@@ -1,7 +1,9 @@
 package com.iut.clearaid.controller;
 
 import com.iut.clearaid.model.entity.Post;
+import com.iut.clearaid.security.JwtUtil;
 import com.iut.clearaid.service.PostService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,14 +15,25 @@ public class PostController {
 
     private final PostService postService;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     public PostController(PostService postService) {
         this.postService = postService;
     }
 
     // Create a new Post
     @PostMapping
-    public ResponseEntity<Post> createPost(@RequestBody Post post) {
-        return ResponseEntity.ok(postService.savePost(post));
+    public ResponseEntity<Post> createPost(@RequestHeader("Authorization") String token, @RequestBody Post post) {
+        Long userId = jwtUtil.getUserIdFromToken(token.replace("Bearer ", ""));
+        Post newPost = new Post(
+                null,
+                userId,
+                post.getTitle(),
+                post.getPost(),
+                post.getMoney()
+        );
+        return ResponseEntity.ok(postService.savePost(newPost));
     }
 
     // Get all Posts
