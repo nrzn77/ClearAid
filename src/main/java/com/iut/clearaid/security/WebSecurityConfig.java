@@ -1,5 +1,6 @@
 package com.iut.clearaid.security;
 
+import org.springframework.http.HttpMethod;
 import com.iut.clearaid.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -7,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,8 +17,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 public class WebSecurityConfig {
+
     @Autowired
-    CustomUserDetailsService userDetailsService;
+    private CustomUserDetailsService userDetailsService;
+
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
 
@@ -39,18 +43,25 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // Updated configuration for Spring Security 6.x
         http
-                .csrf(csrf -> csrf.disable()) // Disable CSRF
-                .cors(cors -> cors.disable()) // Disable CORS (or configure if needed)
+                // Disable CSRF + CORS for APIs (configure CORS properly if needed)
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(AbstractHttpConfigurer::disable)
+
+                // Handle unauthorized requests
                 .exceptionHandling(exceptionHandling ->
                         exceptionHandling.authenticationEntryPoint(unauthorizedHandler)
                 )
+
+                // Stateless session (no cookies)
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+
+                // Authorization rules
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
+                                // Public endpoints
                                 .requestMatchers(
                                         "/api/auth/**",
                                         "/api/test/all",
@@ -67,11 +78,19 @@ public class WebSecurityConfig {
                                         "/api/notifications/sendSingleNotification",
                                         "/actuator/**",
                                         "/api/deepLink/**",
-                                        "/api/user/ping/**").permitAll() // Use 'requestMatchers' instead of 'antMatchers'
+                                        "/api/user/ping/**"
+                                ).permitAll()
+
+                                // ✅ Allow GET requests to posts publicly
+                                .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+
+                                // 🔒 Everything else requires authentication
                                 .anyRequest().authenticated()
                 );
-        // Add the JWT Token filter before the UsernamePasswordAuthenticationFilter
+
+        // Add JWT filter
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 }
