@@ -51,6 +51,7 @@ public class AuthController {
                 null,
                 user.getUsername(),
                 encoder.encode(user.getPassword())
+                user.getRole()
         );
         userRepository.save(newUser);
         return "User registered successfully!";
