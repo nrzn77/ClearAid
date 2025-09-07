@@ -3,6 +3,7 @@ package com.iut.clearaid.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
@@ -11,10 +12,11 @@ import java.util.Date;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class JwtUtil {
-    @Value("${jwt.secret}")
+    @Value("${spring.security.jwt.secret}")
     private String jwtSecret;
-    @Value("${jwt.expiration}")
+    @Value("${spring.security.jwt.expiration}")
     private int jwtExpirationMs;
     private SecretKey key;
     // Initializes the key after the class is instantiated and the jwtSecret is injected,
@@ -54,17 +56,24 @@ public class JwtUtil {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
-        } catch (SecurityException e) {
-            System.out.println("Invalid JWT signature: " + e.getMessage());
-        } catch (MalformedJwtException e) {
-            System.out.println("Invalid JWT token: " + e.getMessage());
-        } catch (ExpiredJwtException e) {
-            System.out.println("JWT token is expired: " + e.getMessage());
-        } catch (UnsupportedJwtException e) {
-            System.out.println("JWT token is unsupported: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            System.out.println("JWT claims string is empty: " + e.getMessage());
+        } catch (SecurityException | MalformedJwtException | ExpiredJwtException | 
+                 UnsupportedJwtException | IllegalArgumentException e) {
+            // Using a more efficient exception handling approach
+            String errorMessage = "JWT validation error: ";
+            if (e instanceof SecurityException) {
+                errorMessage = "Invalid JWT signature: ";
+            } else if (e instanceof MalformedJwtException) {
+                errorMessage = "Invalid JWT token: ";
+            } else if (e instanceof ExpiredJwtException) {
+                errorMessage = "JWT token is expired: ";
+            } else if (e instanceof UnsupportedJwtException) {
+                errorMessage = "JWT token is unsupported: ";
+            } else if (e instanceof IllegalArgumentException) {
+                errorMessage = "JWT claims string is empty: ";
+            }
+            // Using proper logging framework
+            log.error(errorMessage + e.getMessage(), e);
+            return false;
         }
-        return false;
     }
 }

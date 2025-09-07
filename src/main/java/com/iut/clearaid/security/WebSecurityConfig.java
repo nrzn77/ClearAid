@@ -2,7 +2,8 @@ package com.iut.clearaid.security;
 
 import org.springframework.http.HttpMethod;
 import com.iut.clearaid.service.CustomUserDetailsService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,17 +17,19 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@RequiredArgsConstructor
+@Slf4j
 public class WebSecurityConfig {
 
-    @Autowired
-    private CustomUserDetailsService userDetailsService;
+    private final CustomUserDetailsService userDetailsService;
+    private final AuthEntryPointJwt unauthorizedHandler;
 
-    @Autowired
-    private AuthEntryPointJwt unauthorizedHandler;
+    private final JwtUtil jwtUtil;
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
-        return new AuthTokenFilter();
+        log.debug("Creating JWT token filter bean");
+        return new AuthTokenFilter(jwtUtil, userDetailsService);
     }
 
     @Bean

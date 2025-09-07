@@ -1,0 +1,119 @@
+.navbar {
+  background-color: #4285f4;
+  color: white;
+  padding: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 64px;
+}
+
+.navbar-logo {
+  color: white;
+  text-decoration: none;
+  font-size: 1.5rem;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  padding: 8px 0;
+  position: relative;
+  font-weight: 500;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: white;
+  transition: width 0.3s;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.navbar-auth {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.welcome-message {
+  margin-right: 10px;
+  font-weight: 500;
+}
+
+.auth-link {
+  color: white;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.auth-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.auth-link.register {
+  background-color: white;
+  color: #4285f4;
+  font-weight: 500;
+}
+
+.auth-link.register:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.logout-button {
+  background-color: transparent;
+  border: 1px solid white;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.logout-button:hover {
+  background-color: white;
+  color: #4285f4;
+}
+
+@media (max-width: 768px) {
+  .navbar-container {
+    flex-direction: column;
+    height: auto;
+    padding: 15px;
+  }
+  
+  .navbar-links,
+  .navbar-auth {
+    margin-top: 15px;
+    width: 100%;
+    justify-content: center;
+  }
+}

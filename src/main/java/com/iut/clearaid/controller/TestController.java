@@ -2,19 +2,19 @@ package com.iut.clearaid.controller;
 
 import com.iut.clearaid.repository.UserRepository;
 import com.iut.clearaid.security.JwtUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/test")
+@RequiredArgsConstructor
+@Slf4j
 public class TestController {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
 
     @GetMapping("/all")
     public String allAccess() {
@@ -26,6 +26,7 @@ public class TestController {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         token = token.replace("Bearer ", "");
         Long userId = jwtUtil.getUserIdFromToken(token);
+        log.info("User {} (ID: {}) accessed protected endpoint", username, userId);
         return username + " has access to " + userId;
     }
 }

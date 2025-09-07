@@ -1,11 +1,65 @@
-# ClearAid API Documentation
+# ClearAid Application
 
-This repository contains the backend API for ClearAid, a platform that helps connect people who need assistance with those who can provide help.
+This repository contains both the backend API and frontend application for ClearAid, a platform that helps connect people who need assistance with those who can provide help.
 
 ## Table of Contents
+- [Getting Started](#getting-started)
+- [Frontend Application](#frontend-application)
+- [Backend API](#backend-api)
 - [Authentication](#authentication)
 - [Posts](#posts)
 - [Test Endpoints](#test-endpoints)
+
+## Getting Started
+
+### Prerequisites
+
+- Java 17
+- Maven
+- Node.js (v14 or higher)
+- npm (v6 or higher)
+
+### Running the Backend
+
+1. Navigate to the root directory of the project
+
+2. Run the Spring Boot application:
+   ```
+   mvn spring-boot:run
+   ```
+
+3. The backend API will be available at [http://localhost:8080/api](http://localhost:8080/api)
+
+### Running the Frontend
+
+1. Navigate to the frontend directory:
+   ```
+   cd frontend
+   ```
+
+2. Install dependencies:
+   ```
+   npm install
+   ```
+
+3. Start the development server:
+   ```
+   npm start
+   ```
+
+4. The application will be available at [http://localhost:3000](http://localhost:3000)
+
+## Frontend Application
+
+The frontend is built with React and includes the following features:
+
+- User authentication (login/register)
+- View posts
+- Create new posts
+- Search posts by title
+- Responsive design
+
+## Backend API
 
 ## Authentication
 
