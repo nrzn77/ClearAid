@@ -11,11 +11,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 const CreatePostShadcn = () => {
   const [formData, setFormData] = useState({
     title: '',
-    content: ''
+    content: '',
+    money: 0
   });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { token } = useAuth(); // token from context
+  const { token, currentUser } = useAuth(); // get both token and currentUser from context
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -29,30 +30,42 @@ const CreatePostShadcn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.title.trim() || !formData.content.trim()) {
-      setError('Title and content are required');
+    if (!formData.title.trim() || !formData.content.trim() || formData.money < 0) {
+      setError('Title, content, and valid reward amount are required');
       return;
     }
-
-    const postData = {
-      title: formData.title,
-      post: formData.content,
-      money: 0
-    };
 
     if (!token) {
       setError('You must be logged in to create a post');
       return;
     }
 
+
+    console.log('Current User:', currentUser);
+    console.log('Current User Role:', currentUser?.role);
+     if (!currentUser || currentUser.role !== 'ADMIN') {
+      setError('Only administrators can create posts');
+      return;
+    }
+
+    const postData = {
+      title: formData.title,
+      post: formData.content,
+      money: formData.money
+    };
+
     try {
       setLoading(true);
       setError(null);
 
-      await ApiService.createPost(postData, token); // send token
+      await ApiService.createPost(postData, token);
       navigate('/');
     } catch (err) {
-      setError('Failed to create post. Please try again.');
+      if (err.message === 'Only admins can create posts') {
+        setError('You do not have permission to create posts. Only administrators can create posts.');
+      } else {
+        setError('Failed to create post. Please try again.');
+      }
       console.error('Error creating post:', err);
     } finally {
       setLoading(false);
@@ -87,8 +100,23 @@ const CreatePostShadcn = () => {
                 disabled={loading}
                 required
               />
-            </div>
 
+              </div>
+            <div className="space-y-2">
+              <label htmlFor="money" className="text-sm font-medium">
+                Reward Amount (in USD)
+              </label>
+              <Input
+                type="number"
+                id="money"
+                name="money"
+                value={formData.money}
+                onChange={handleChange}
+                disabled={loading}
+                min="0"
+                step="0.01"
+              />
+            </div>
             <div className="space-y-2">
               <label htmlFor="content" className="text-sm font-medium">
                 Content
@@ -105,22 +133,22 @@ const CreatePostShadcn = () => {
               ></textarea>
             </div>
 
-            <div className="flex justify-end gap-4">
-              <Button 
-                type="button" 
-                variant="outline"
-                onClick={() => navigate('/')}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={loading}
-              >
-                {loading ? 'Creating...' : 'Create Post'}
-              </Button>
-            </div>
+      <div className="flex justify-end gap-4">
+        <Button 
+          type="button" 
+          variant="outline"
+          onClick={() => navigate('/')}
+          disabled={loading}
+        >
+          Cancel
+        </Button>
+        <Button 
+          type="submit" 
+          disabled={loading}
+        >
+          {loading ? 'Creating...' : 'Create Post'}
+        </Button>
+      </div>
           </form>
         </CardContent>
       </Card>

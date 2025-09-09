@@ -21,7 +21,7 @@ const Navbar = () => {
 
         <div className="navbar-links">
           <Link to="/" className="nav-link">Home</Link>
-          {isAuthenticated && (
+          {isAuthenticated && currentUser?.role === 'ADMIN' && (
             <Link to="/posts/new" className="nav-link">Create Post</Link>
           )}
         </div>

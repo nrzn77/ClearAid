@@ -15,7 +15,7 @@ const RegisterShadcn = () => {
     confirmPassword: ''
   });
   const [error, setError] = useState('');
-  const { register, loading } = useAuth();
+  const { register, login, loading } = useAuth(); // include login here
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -58,14 +58,19 @@ const RegisterShadcn = () => {
     if (!validateForm()) return;
     
     try {
+      // Step 1: Register user
       await register({
         username: formData.username,
         email: formData.email,
         password: formData.password
       });
-      
-      // Redirect to login after successful registration
-      navigate('/login', { state: { message: 'Registration successful! Please log in.' } });
+
+      // Step 2: Auto-login the newly registered user
+      await login(formData.username, formData.password);
+
+      // Step 3: Redirect directly to home/dashboard
+      navigate('/', { replace: true });
+
     } catch (err) {
       setError('Registration failed. The username or email may already be in use.');
       console.error('Registration error:', err);

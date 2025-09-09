@@ -9,6 +9,7 @@ import CreatePost from './components/Post/CreatePostShadcn';
 import Login from './components/Auth/SignInShadcn';
 import Register from './components/Auth/RegisterShadcn';
 import PrivateRoute from './components/Auth/PrivateRoute';
+import AdminRoute from './components/Auth/AdminRoute';
 
 // Context
 import { AuthProvider } from './contexts/AuthContext';
@@ -17,7 +18,7 @@ import { ThemeToggle } from './components/ui/theme-toggle';
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="system" storageKey="ui-theme">
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <Router>
         <AuthProvider>
           <div className="App">
@@ -29,13 +30,15 @@ function App() {
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<PostList />} />
-                <Route path="/posts/:id" element={<PostDetail />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 
                 {/* Protected Routes */}
-                <Route element={<PrivateRoute />}>
+                <Route element={<AdminRoute />}>
                   <Route path="/posts/new" element={<CreatePost />} />
+                </Route>
+                <Route element={<PrivateRoute />}>
+                  <Route path="/posts/:id" element={<PostDetail />} />
                 </Route>
                 
                 {/* Fallback Route */}

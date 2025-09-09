@@ -21,6 +21,6 @@ public class User {
     private String password;
     
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'VOLUNTEER'")
-    private Users role;
+    @Column(nullable = false)
+    private Users role = Users.VOLUNTEER; // Set default value in Java instead of DB
 }

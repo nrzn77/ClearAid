@@ -1,6 +1,9 @@
 package com.iut.clearaid.controller;
 
+import com.iut.clearaid.model.User;
 import com.iut.clearaid.model.entity.Post;
+import com.iut.clearaid.model.enums.Users;
+import com.iut.clearaid.repository.UserRepository;
 import com.iut.clearaid.security.JwtUtil;
 import com.iut.clearaid.service.PostService;
 import lombok.extern.slf4j.Slf4j;
@@ -17,10 +20,12 @@ public class PostController {
 
     private final PostService postService;
     private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
 
-    public PostController(PostService postService, JwtUtil jwtUtil) {
+    public PostController(PostService postService, JwtUtil jwtUtil, UserRepository userRepository) {
         this.postService = postService;
         this.jwtUtil = jwtUtil;
+        this.userRepository = userRepository;
     }
 
     // Create a new Post
@@ -36,8 +41,13 @@ public class PostController {
         String jwtToken = token.substring(7);
         Long userId = jwtUtil.getUserIdFromToken(jwtToken);
 
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null || user.getRole() != Users.ADMIN) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only admins can create posts");
+        }
+
         // Admin can specify authId
-        if (jwtUtil.isAdmin(jwtToken) && post.getAuthId() != null) {
+        if (post.getAuthId() != null) {
             Post newPost = new Post(
                     null,
                     post.getAuthId(),
@@ -48,7 +58,7 @@ public class PostController {
             return ResponseEntity.ok(postService.savePost(newPost));
         }
 
-        // Regular user
+        // Admin creating for themselves
         Post newPost = new Post(
                 null,
                 userId,

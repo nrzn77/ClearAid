@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
       setToken(storedToken);
       const userData = JSON.parse(storedUser);
       // Extract role information if available
-      const userWithRole = userData.role ? userData : { ...userData, role: 'user' };
+      const userWithRole = userData.role ? userData : { ...userData, role: 'VOLUNTEER' };
       setCurrentUser(userWithRole);
     }
     

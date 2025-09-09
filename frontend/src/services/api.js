@@ -12,14 +12,13 @@ const getAuthHeader = () => {
 const ApiService = {
   /**
    * Fetch all users (admin only)
-   * @returns {Promise<Array>} Promise containing users
    */
-  getAllUsers: async () => {
+  getAllUsers: async (token) => {
     try {
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : getAuthHeader();
+
       const response = await fetch(`${API_BASE_URL}/users`, {
-        headers: {
-          ...getAuthHeader()
-        }
+        headers
       });
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       return await response.json();
@@ -30,8 +29,49 @@ const ApiService = {
   },
 
   /**
+   * Update an existing post
+   */
+  updatePost: async (id, postData, token) => {
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : getAuthHeader())
+      };
+
+      const response = await fetch(`${API_BASE_URL}/posts/${id}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(postData)
+      });
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error(`Error updating post ${id}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete a post
+   */
+  deletePost: async (id, token) => {
+    try {
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : getAuthHeader();
+
+      const response = await fetch(`${API_BASE_URL}/posts/${id}`, {
+        method: 'DELETE',
+        headers
+      });
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error(`Error deleting post ${id}:`, error);
+      throw error;
+    }
+  },
+
+  /**
    * Fetch all posts
-   * @returns {Promise<Array>} Promise containing posts
    */
   getAllPosts: async () => {
     try {
@@ -46,8 +86,6 @@ const ApiService = {
 
   /**
    * Fetch a post by ID
-   * @param {string} id Post ID
-   * @returns {Promise<Object>} Promise containing post
    */
   getPostById: async (id) => {
     try {
@@ -62,17 +100,16 @@ const ApiService = {
 
   /**
    * Create a new post
-   * @param {Object} postData Post data
-   * @returns {Promise<Object>} Promise containing created post
    */
-  createPost: async (postData) => {
+  createPost: async (postData, token) => {
     try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : getAuthHeader())
+      };
       const response = await fetch(`${API_BASE_URL}/posts`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeader()
-        },
+        headers,
         body: JSON.stringify(postData)
       });
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -85,8 +122,6 @@ const ApiService = {
 
   /**
    * Search posts by title
-   * @param {string} title Title to search for
-   * @returns {Promise<Array>} Promise containing matching posts
    */
   searchPostsByTitle: async (title) => {
     try {
@@ -101,8 +136,6 @@ const ApiService = {
 
   /**
    * Login user
-   * @param {Object} credentials User credentials
-   * @returns {Promise<Object>} Promise containing auth response with token
    */
   login: async (credentials) => {
     try {
@@ -112,7 +145,7 @@ const ApiService = {
         body: JSON.stringify(credentials)
       });
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-      return await response.json();
+      return await response.json(); // backend returns JSON with token
     } catch (error) {
       console.error('Error logging in:', error);
       throw error;
@@ -120,19 +153,17 @@ const ApiService = {
   },
 
   /**
-   * Register new user
-   * @param {Object} userData User registration data
-   * @returns {Promise<Object>} Promise containing registration response
+   * Register new user (uses /auth/signup instead of /auth/register)
    */
   register: async (userData) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      const response = await fetch(`${API_BASE_URL}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)
       });
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-      return await response.json();
+      return await response.text(); // backend returns String ("User registered successfully!")
     } catch (error) {
       console.error('Error registering user:', error);
       throw error;

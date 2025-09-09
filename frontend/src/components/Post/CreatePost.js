@@ -8,6 +8,7 @@ const CreatePost = () => {
   const [formData, setFormData] = useState({
     title: '',
     content: '',
+    money: 0,
     authId: ''
   });
   const [error, setError] = useState(null);
@@ -56,7 +57,7 @@ const CreatePost = () => {
     const postData = {
       title: formData.title,
       post: formData.content,
-      money: 0
+       money: formData.money
     };
     
     // If admin and authId is selected, add it to the post data
