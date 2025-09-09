@@ -23,9 +23,7 @@ function App() {
         <AuthProvider>
           <div className="App">
             <NavbarShadcn />
-            <div className="absolute top-4 right-4">
-              <ThemeToggle />
-            </div>
+
             <main className="main-content">
               <Routes>
                 {/* Public Routes */}

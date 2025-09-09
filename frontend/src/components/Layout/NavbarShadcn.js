@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 // Shadcn UI components
 import { Button } from '../ui/button';
+import { ThemeToggle } from '../ui/theme-toggle';
 
 const NavbarShadcn = () => {
   const { currentUser, logout, isAuthenticated } = useAuth();
@@ -33,6 +34,7 @@ const NavbarShadcn = () => {
         </div>
 
         <div className="flex items-center space-x-4">
+          <ThemeToggle />
           {isAuthenticated ? (
             <>
               <span className="text-sm font-medium">
