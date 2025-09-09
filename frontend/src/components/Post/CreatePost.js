@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ApiService from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -7,12 +7,17 @@ import './CreatePost.css';
 const CreatePost = () => {
   const [formData, setFormData] = useState({
     title: '',
-    content: ''
+    content: '',
+    authId: ''
   });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { token } = useAuth();
+  const [users, setUsers] = useState([]);
+  const { token, currentUser } = useAuth();
   const navigate = useNavigate();
+  
+  // Check if user is admin
+  const isAdmin = currentUser?.role === 'ADMIN';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,6 +27,23 @@ const CreatePost = () => {
     }));
   };
 
+  // Fetch users if admin
+  useEffect(() => {
+    if (isAdmin) {
+      const fetchUsers = async () => {
+        try {
+          const userData = await ApiService.getAllUsers(token);
+          setUsers(userData);
+        } catch (err) {
+          console.error('Error fetching users:', err);
+          setError('Failed to load users. Admin features may be limited.');
+        }
+      };
+      
+      fetchUsers();
+    }
+  }, [isAdmin, token]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -30,11 +52,23 @@ const CreatePost = () => {
       return;
     }
     
+    // Prepare post data
+    const postData = {
+      title: formData.title,
+      post: formData.content,
+      money: 0
+    };
+    
+    // If admin and authId is selected, add it to the post data
+    if (isAdmin && formData.authId) {
+      postData.authId = parseInt(formData.authId);
+    }
+    
     try {
       setLoading(true);
       setError(null);
       
-      await ApiService.createPost(formData, token);
+      await ApiService.createPost(postData, token);
       navigate('/');
     } catch (err) {
       setError('Failed to create post. Please try again.');

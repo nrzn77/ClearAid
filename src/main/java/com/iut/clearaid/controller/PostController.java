@@ -25,8 +25,30 @@ public class PostController {
 
     // Create a new Post
     @PostMapping
-    public ResponseEntity<Post> createPost(@RequestHeader("Authorization") String token, @RequestBody Post post) {
-        Long userId = jwtUtil.getUserIdFromToken(token.replace("Bearer ", ""));
+    public ResponseEntity<?> createPost(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestBody Post post) {
+
+        if (token == null || !token.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid token");
+        }
+
+        String jwtToken = token.substring(7);
+        Long userId = jwtUtil.getUserIdFromToken(jwtToken);
+
+        // Admin can specify authId
+        if (jwtUtil.isAdmin(jwtToken) && post.getAuthId() != null) {
+            Post newPost = new Post(
+                    null,
+                    post.getAuthId(),
+                    post.getTitle(),
+                    post.getPost(),
+                    post.getMoney()
+            );
+            return ResponseEntity.ok(postService.savePost(newPost));
+        }
+
+        // Regular user
         Post newPost = new Post(
                 null,
                 userId,
@@ -48,65 +70,73 @@ public class PostController {
     public ResponseEntity<Post> getPostById(@PathVariable Long id) {
         return postService.getPostById(id)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     // Update Post
     @PutMapping("/{id}")
     public ResponseEntity<?> updatePost(
-            @RequestHeader("Authorization") String token,
+            @RequestHeader(value = "Authorization", required = false) String token,
             @PathVariable Long id,
             @RequestBody Post updatedPost) {
 
-        Long userId = jwtUtil.getUserIdFromToken(token.replace("Bearer ", ""));
+        if (token == null || !token.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid token");
+        }
 
-        return (ResponseEntity<Post>) postService.getPostById(id)
+        String jwtToken = token.substring(7);
+        Long userId = jwtUtil.getUserIdFromToken(jwtToken);
+        boolean isAdmin = jwtUtil.isAdmin(jwtToken);
+
+        return postService.getPostById(id)
                 .map(existingPost -> {
-                    // ensure the post belongs to the user
-                    if (!existingPost.getAuthId().equals(userId)) {
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                    if (!isAdmin && !existingPost.getAuthId().equals(userId)) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Not allowed to update this post");
                     }
 
-                    // update only allowed fields
                     existingPost.setTitle(updatedPost.getTitle());
                     existingPost.setPost(updatedPost.getPost());
                     existingPost.setMoney(updatedPost.getMoney());
 
                     return ResponseEntity.ok(postService.savePost(existingPost));
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     // Delete Post
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletePost(
-            @RequestHeader("Authorization") String token,
+            @RequestHeader(value = "Authorization", required = false) String token,
             @PathVariable Long id) {
 
-        Long userId = jwtUtil.getUserIdFromToken(token.replace("Bearer ", ""));
+        if (token == null || !token.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid token");
+        }
+
+        String jwtToken = token.substring(7);
+        Long userId = jwtUtil.getUserIdFromToken(jwtToken);
+        boolean isAdmin = jwtUtil.isAdmin(jwtToken);
 
         return postService.getPostById(id)
                 .map(existingPost -> {
-                    // ensure the post belongs to the user
-                    if (!existingPost.getAuthId().equals(userId)) {
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                    if (!isAdmin && !existingPost.getAuthId().equals(userId)) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Not allowed to delete this post");
                     }
 
                     postService.deletePost(id);
                     return ResponseEntity.noContent().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Custom: Get Posts by Author ID
+    // Get Posts by Author ID
     @GetMapping("/author/{authId}")
     public ResponseEntity<List<Post>> getPostsByAuthId(@PathVariable("authId") Long authId) {
         log.info("Received request for authorId = {}", authId);
         return ResponseEntity.ok(postService.getPostsByAuthId(authId));
     }
 
-
-    // Custom: Search Posts by Title
+    // Search Posts by Title
     @GetMapping("/search")
     public ResponseEntity<List<Post>> searchPosts(@RequestParam String keyword) {
         return ResponseEntity.ok(postService.searchPostsByTitle(keyword));

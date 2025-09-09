@@ -18,7 +18,10 @@ export const AuthProvider = ({ children }) => {
     
     if (storedToken && storedUser) {
       setToken(storedToken);
-      setCurrentUser(JSON.parse(storedUser));
+      const userData = JSON.parse(storedUser);
+      // Extract role information if available
+      const userWithRole = userData.role ? userData : { ...userData, role: 'user' };
+      setCurrentUser(userWithRole);
     }
     
     setLoading(false);
@@ -31,12 +34,27 @@ export const AuthProvider = ({ children }) => {
       
       const response = await ApiService.login({ username, password });
       
-      // Store token
+      // Parse JWT token to get user role
+      const parseJwt = (token) => {
+        try {
+          return JSON.parse(atob(token.split('.')[1]));
+        } catch (e) {
+          return null;
+        }
+      };
+      
+      const decodedToken = parseJwt(response.token);
+      const role = decodedToken?.role || 'VOLUNTEER';
+      const userId = decodedToken?.userId;
+      
+      const userData = { username, role, userId };
+      
+      // Store token and user data
       localStorage.setItem('authToken', response.token);
-      localStorage.setItem('user', JSON.stringify({ username }));
+      localStorage.setItem('user', JSON.stringify(userData));
       
       setToken(response.token);
-      setCurrentUser({ username });
+      setCurrentUser(userData);
       
       return response;
     } catch (err) {

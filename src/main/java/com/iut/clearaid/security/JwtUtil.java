@@ -1,8 +1,11 @@
 package com.iut.clearaid.security;
 
+import com.iut.clearaid.model.User;
+import com.iut.clearaid.repository.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -13,7 +16,9 @@ import java.util.Map;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class JwtUtil {
+    private final UserRepository userRepository;
     @Value("${spring.security.jwt.secret}")
     private String jwtSecret;
     @Value("${spring.security.jwt.expiration}")
@@ -27,9 +32,14 @@ public class JwtUtil {
     }
     // Generate JWT token
     public String generateToken(String username, Long userId) {
+        // Get user role from repository
+        User user = userRepository.findById(userId).orElse(null);
+        String role = (user != null) ? user.getRole().toString() : null;
+        
         return Jwts.builder()
                 .setSubject(username)
                 .claim("userId", userId)
+                .claim("role", role) // Add role to token
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -50,6 +60,25 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody()
                 .get("userId", Long.class);
+    }
+    
+    // Check if the user has ADMIN role
+    public boolean isAdmin(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(key).build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            
+            // Get role from token claims
+            String role = claims.get("role", String.class);
+            
+            // Check if role is ADMIN
+            return "ADMIN".equals(role);
+        } catch (Exception e) {
+            log.error("Error checking admin role: " + e.getMessage(), e);
+            return false;
+        }
     }
     // Validate JWT token
     public boolean validateJwtToken(String token) {

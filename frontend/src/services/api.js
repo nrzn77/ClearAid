@@ -4,7 +4,31 @@
 
 const API_BASE_URL = 'http://localhost:8097/api';
 
+const getAuthHeader = () => {
+  const token = localStorage.getItem('authToken');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
+
 const ApiService = {
+  /**
+   * Fetch all users (admin only)
+   * @returns {Promise<Array>} Promise containing users
+   */
+  getAllUsers: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users`, {
+        headers: {
+          ...getAuthHeader()
+        }
+      });
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      throw error;
+    }
+  },
+
   /**
    * Fetch all posts
    * @returns {Promise<Array>} Promise containing posts
@@ -12,9 +36,7 @@ const ApiService = {
   getAllPosts: async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/posts`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       return await response.json();
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -30,9 +52,7 @@ const ApiService = {
   getPostById: async (id) => {
     try {
       const response = await fetch(`${API_BASE_URL}/posts/${id}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       return await response.json();
     } catch (error) {
       console.error(`Error fetching post ${id}:`, error);
@@ -43,22 +63,19 @@ const ApiService = {
   /**
    * Create a new post
    * @param {Object} postData Post data
-   * @param {string} token JWT token
    * @returns {Promise<Object>} Promise containing created post
    */
-  createPost: async (postData, token) => {
+  createPost: async (postData) => {
     try {
       const response = await fetch(`${API_BASE_URL}/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          ...getAuthHeader()
         },
         body: JSON.stringify(postData)
       });
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       return await response.json();
     } catch (error) {
       console.error('Error creating post:', error);
@@ -74,9 +91,7 @@ const ApiService = {
   searchPostsByTitle: async (title) => {
     try {
       const response = await fetch(`${API_BASE_URL}/posts/search?title=${encodeURIComponent(title)}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       return await response.json();
     } catch (error) {
       console.error('Error searching posts:', error);
@@ -93,14 +108,10 @@ const ApiService = {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/signin`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials)
       });
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       return await response.json();
     } catch (error) {
       console.error('Error logging in:', error);
@@ -117,14 +128,10 @@ const ApiService = {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)
       });
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       return await response.json();
     } catch (error) {
       console.error('Error registering user:', error);
