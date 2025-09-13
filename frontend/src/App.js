@@ -10,6 +10,7 @@ import Login from './components/Auth/SignInShadcn';
 import Register from './components/Auth/RegisterShadcn';
 import PrivateRoute from './components/Auth/PrivateRoute';
 import AdminRoute from './components/Auth/AdminRoute';
+import PendingPosts from './components/Post/PendingPostsShadcn';
 
 // Context
 import { AuthProvider } from './contexts/AuthContext';
@@ -32,12 +33,15 @@ function App() {
                 <Route path="/register" element={<Register />} />
                 
                 {/* Protected Routes */}
-                <Route element={<AdminRoute />}>
+                <Route element={<PrivateRoute />}>
                   <Route path="/posts/new" element={<CreatePost />} />
                 </Route>
-                <Route element={<PrivateRoute />}>
-                  <Route path="/posts/:id" element={<PostDetail />} />
-                </Route>
+<Route element={<PrivateRoute />}>
+  <Route path="/posts/:id" element={<PostDetail />} />
+</Route>
+<Route element={<AdminRoute />}>
+  <Route path="/posts/pending" element={<PendingPosts />} />
+</Route>
                 
                 {/* Fallback Route */}
                 <Route path="*" element={<Navigate to="/" />} />

@@ -52,4 +52,14 @@ public class PostService {
         log.debug("Searching posts by title keyword: {}", keyword);
         return postRepository.findByTitleContainingIgnoreCase(keyword);
     }
+
+    public List<Post> getApprovedPosts() {
+        log.debug("Retrieving approved posts");
+        return postRepository.findByApprovedTrue();
+    }
+
+    public List<Post> getPendingPosts() {
+        log.debug("Retrieving pending posts");
+        return postRepository.findByApprovedFalse();
+    }
 }

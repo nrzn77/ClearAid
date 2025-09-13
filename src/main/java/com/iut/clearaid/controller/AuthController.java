@@ -44,8 +44,10 @@ public class AuthController {
                     userDetails.getUsername(),
                     userRepository.findIdByUsername(userDetails.getUsername())
             );
+            User userEntity = userRepository.findByUsername(userDetails.getUsername());
+            String role = userEntity.getRole().name();
             log.info("User authenticated successfully: {}", user.getUsername());
-            return ResponseEntity.ok("{\"token\":\"" + token + "\"}");
+            return ResponseEntity.ok("{\"token\":\"" + token + "\",\"role\":\"" + role + "\"}");
         } catch (BadCredentialsException e) {
             log.warn("Authentication failed for user: {}", user.getUsername());
             return ResponseEntity.status(401).body("{\"error\":\"Invalid username or password\"}");

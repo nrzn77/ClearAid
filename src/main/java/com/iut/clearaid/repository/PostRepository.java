@@ -16,5 +16,12 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findByAuthId(Long authId);
 
     List<Post> findByTitleContainingIgnoreCase(String keyword);
+
+    List<Post> findByApprovedTrue();
+
+    List<Post> findByApprovedFalse();
+
+   
+
 }
 

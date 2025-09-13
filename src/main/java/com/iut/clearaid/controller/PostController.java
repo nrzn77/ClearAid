@@ -42,37 +42,52 @@ public class PostController {
         Long userId = jwtUtil.getUserIdFromToken(jwtToken);
 
         User user = userRepository.findById(userId).orElse(null);
-        if (user == null || user.getRole() != Users.ADMIN) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only admins can create posts");
+        if (user == null || (user.getRole() != Users.ADMIN && user.getRole() != Users.NGO)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only admins and NGOs can create posts");
+        }
+
+        // NGOs can only create posts for themselves
+        if (user.getRole() == Users.NGO) {
+Post newPost = Post.builder()
+                    .id(null)
+                    .authId(userId)
+                    .title(post.getTitle())
+                    .post(post.getPost())
+                    .money(post.getMoney())
+                    .approved(false)
+                    .build();
+            return ResponseEntity.ok(postService.savePost(newPost));
         }
 
         // Admin can specify authId
         if (post.getAuthId() != null) {
-            Post newPost = new Post(
-                    null,
-                    post.getAuthId(),
-                    post.getTitle(),
-                    post.getPost(),
-                    post.getMoney()
-            );
+Post newPost = Post.builder()
+                    .id(null)
+                    .authId(post.getAuthId())
+                    .title(post.getTitle())
+                    .post(post.getPost())
+                    .money(post.getMoney())
+                    .approved(false)
+                    .build();
             return ResponseEntity.ok(postService.savePost(newPost));
         }
 
         // Admin creating for themselves
-        Post newPost = new Post(
-                null,
-                userId,
-                post.getTitle(),
-                post.getPost(),
-                post.getMoney()
-        );
+Post newPost = Post.builder()
+                .id(null)
+                .authId(userId)
+                .title(post.getTitle())
+                .post(post.getPost())
+                .money(post.getMoney())
+                .approved(false)
+                .build();
         return ResponseEntity.ok(postService.savePost(newPost));
     }
 
     // Get all Posts
     @GetMapping
     public ResponseEntity<List<Post>> getAllPosts() {
-        return ResponseEntity.ok(postService.getAllPosts());
+        return ResponseEntity.ok(postService.getApprovedPosts());
     }
 
     // Get Post by ID
@@ -139,6 +154,32 @@ public class PostController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // Approve Post
+    @PutMapping("/{id}/approve")
+    public ResponseEntity<?> approvePost(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @PathVariable Long id,
+            @RequestParam boolean approved) {
+
+        if (token == null || !token.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid token");
+        }
+
+        String jwtToken = token.substring(7);
+        boolean isAdmin = jwtUtil.isAdmin(jwtToken);
+
+        if (!isAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only admins can approve posts");
+        }
+
+        return postService.getPostById(id)
+                .map(existingPost -> {
+                    existingPost.setApproved(approved);
+                    return ResponseEntity.ok(postService.savePost(existingPost));
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     // Get Posts by Author ID
     @GetMapping("/author/{authId}")
     public ResponseEntity<List<Post>> getPostsByAuthId(@PathVariable("authId") Long authId) {
@@ -150,5 +191,24 @@ public class PostController {
     @GetMapping("/search")
     public ResponseEntity<List<Post>> searchPosts(@RequestParam String keyword) {
         return ResponseEntity.ok(postService.searchPostsByTitle(keyword));
+    }
+
+    // Get Pending Posts (unapproved)
+    @GetMapping("/pending")
+    public ResponseEntity<?> getPendingPosts(
+            @RequestHeader(value = "Authorization", required = false) String token) {
+
+        if (token == null || !token.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid token");
+        }
+
+        String jwtToken = token.substring(7);
+        boolean isAdmin = jwtUtil.isAdmin(jwtToken);
+
+        if (!isAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only admins can view pending posts");
+        }
+
+        return ResponseEntity.ok(postService.getPendingPosts());
     }
 }

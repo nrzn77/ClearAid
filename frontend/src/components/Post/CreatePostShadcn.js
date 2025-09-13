@@ -43,8 +43,8 @@ const CreatePostShadcn = () => {
 
     console.log('Current User:', currentUser);
     console.log('Current User Role:', currentUser?.role);
-     if (!currentUser || currentUser.role !== 'ADMIN') {
-      setError('Only administrators can create posts');
+     if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.role !== 'NGO')) {
+      setError('Only administrators and NGOs can create posts');
       return;
     }
 
@@ -61,11 +61,11 @@ const CreatePostShadcn = () => {
       await ApiService.createPost(postData, token);
       navigate('/');
     } catch (err) {
-      if (err.message === 'Only admins can create posts') {
-        setError('You do not have permission to create posts. Only administrators can create posts.');
-      } else {
-        setError('Failed to create post. Please try again.');
-      }
+    if (err.message === 'Only admins and NGOs can create posts') {
+      setError('You do not have permission to create posts. Only administrators and NGOs can create posts.');
+    } else {
+      setError('Failed to create post. Please try again.');
+    }
       console.error('Error creating post:', err);
     } finally {
       setLoading(false);

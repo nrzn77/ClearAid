@@ -26,9 +26,14 @@ const NavbarShadcn = () => {
           <Link to="/" className="text-sm font-medium transition-colors hover:text-primary-foreground/80">
             Home
           </Link>
-          {isAuthenticated && currentUser?.role === 'ADMIN' && (
+          {isAuthenticated && (currentUser?.role === 'ADMIN' || currentUser?.role === 'NGO') && (
             <Link to="/posts/new" className="text-sm font-medium transition-colors hover:text-primary-foreground/80">
               Create Post
+            </Link>
+          )}
+          {isAuthenticated && currentUser?.role === 'ADMIN' && (
+            <Link to="/posts/pending" className="text-sm font-medium transition-colors hover:text-primary-foreground/80">
+              Pending Posts
             </Link>
           )}
         </div>

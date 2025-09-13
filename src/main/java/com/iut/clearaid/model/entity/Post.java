@@ -26,4 +26,8 @@ public class Post {
     private String post;
 
     private Double money;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean approved = false;
 }
