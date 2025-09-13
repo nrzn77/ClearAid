@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 // Shadcn UI components
 import { Button } from '../ui/button';
 import { ThemeToggle } from '../ui/theme-toggle';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../ui/dropdown-menu.js';
 
 const NavbarShadcn = () => {
   const { currentUser, logout, isAuthenticated } = useAuth();
@@ -26,11 +27,21 @@ const NavbarShadcn = () => {
           <Link to="/" className="text-sm font-medium transition-colors hover:text-primary-foreground/80">
             Home
           </Link>
-          {isAuthenticated && (currentUser?.role === 'ADMIN' || currentUser?.role === 'NGO') && (
-            <Link to="/posts/new" className="text-sm font-medium transition-colors hover:text-primary-foreground/80">
-              Create Post
-            </Link>
-          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="text-sm font-medium transition-colors hover:text-primary-foreground/80">
+                Create Post
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem asChild>
+                <Link to="/posts/new">Crowdfunding</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/posts/volunteer">Volunteering</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {isAuthenticated && currentUser?.role === 'ADMIN' && (
             <Link to="/posts/pending" className="text-sm font-medium transition-colors hover:text-primary-foreground/80">
               Pending Posts

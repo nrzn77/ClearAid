@@ -1,0 +1,52 @@
+import React, { useState } from 'react';
+
+// Wrapper for the dropdown
+const DropdownMenu = ({ children }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div
+      className="relative inline-block"
+      onMouseLeave={() => setIsOpen(false)} // closes when cursor leaves menu
+    >
+      {React.Children.map(children, child =>
+        React.cloneElement(child, { isOpen, setIsOpen })
+      )}
+    </div>
+  );
+};
+
+// Trigger button
+const DropdownMenuTrigger = ({ children, asChild, isOpen, setIsOpen }) => {
+  return (
+    <div
+      className={asChild ? undefined : 'cursor-pointer'}
+      onMouseEnter={() => setIsOpen(true)} // opens on hover
+      onClick={() => setIsOpen(!isOpen)}  // also toggle on click
+    >
+      {children}
+    </div>
+  );
+};
+
+// Dropdown content
+const DropdownMenuContent = ({ children, isOpen }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="absolute mt-2 right-0 w-48 bg-white border rounded shadow-md z-50">
+      {children}
+    </div>
+  );
+};
+
+// Dropdown item
+const DropdownMenuItem = ({ children, asChild }) => {
+  return (
+    <div className={`px-4 py-2 cursor-pointer hover:bg-gray-100`}>
+      {children}
+    </div>
+  );
+};
+
+export { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem };
