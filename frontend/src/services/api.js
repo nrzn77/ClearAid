@@ -120,12 +120,12 @@ const ApiService = {
     }
   },
 
-  /**
-   * Search posts by title
-   */
-  searchPostsByTitle: async (title) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/posts/search?title=${encodeURIComponent(title)}`);
+    /**
+     * Search posts by title with pagination
+     */
+    searchPostsByTitle: async (title, page = 0, size = 10) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/posts/search?keyword=${encodeURIComponent(title)}&page=${page}&size=${size}`);
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       return await response.json();
     } catch (error) {

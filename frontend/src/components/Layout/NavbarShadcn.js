@@ -27,21 +27,23 @@ const NavbarShadcn = () => {
           <Link to="/" className="text-sm font-medium transition-colors hover:text-primary-foreground/80">
             Home
           </Link>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="text-sm font-medium transition-colors hover:text-primary-foreground/80">
-                Create Post
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem asChild>
-                <Link to="/posts/new">Crowdfunding</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/posts/volunteer">Volunteering</Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {isAuthenticated && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="text-sm font-medium transition-colors hover:text-primary-foreground/80">
+                  Create Post
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem asChild>
+                  <Link to="/posts/new" className="text-black dark:text-white">Crowdfunding</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/posts/volunteer" className="text-black dark:text-white">Volunteering</Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           {isAuthenticated && currentUser?.role === 'ADMIN' && (
             <Link to="/posts/pending" className="text-sm font-medium transition-colors hover:text-primary-foreground/80">
               Pending Posts

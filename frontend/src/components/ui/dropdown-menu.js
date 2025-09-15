@@ -58,7 +58,7 @@ const DropdownMenuContent = ({ children, isOpen }) => {
 const DropdownMenuItem = ({ children, asChild, onClick }) => {
   return (
     <div 
-      className="px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 first:rounded-t-md last:rounded-b-md"
+      className="px-4 py-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-foreground transition-colors duration-200 first:rounded-t-md last:rounded-b-md"
       onClick={onClick}
     >
       {children}
