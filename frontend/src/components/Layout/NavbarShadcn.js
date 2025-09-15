@@ -27,7 +27,7 @@ const NavbarShadcn = () => {
           <Link to="/" className="text-sm font-medium transition-colors hover:text-primary-foreground/80">
             Home
           </Link>
-          {isAuthenticated && (
+          {isAuthenticated && (currentUser?.role === 'ADMIN' || currentUser?.role === 'NGO') && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="text-sm font-medium transition-colors hover:text-primary-foreground/80">

@@ -25,6 +25,8 @@ const PostListShadcn = () => {
       setLoading(true);
       const data = await ApiService.getAllPosts({ signal });
       setPosts(Array.isArray(data) ? data : []);
+      setCurrentPage(0);
+      setHasMore(false); // getAllPosts doesn't support pagination
       setError(null);
     } catch (err) {
       if (err.name !== 'AbortError') {
@@ -40,21 +42,29 @@ const PostListShadcn = () => {
     const controller = new AbortController();
     try {
       setLoading(true);
-      const results = await ApiService.searchPostsByTitle(term, page, size, {
+      const response = await ApiService.searchPostsByTitle(term, page, size, {
         signal: controller.signal,
       });
+      
+      // Handle paginated response from backend
+      const results = response.content || [];
+      
       if (Array.isArray(results)) {
         setPosts(prev => page === 0 ? results : [...prev, ...results]);
-        setHasMore(results.length === size);
+        setHasMore(!response.last && results.length === size);
+        setCurrentPage(page);
         setError(null);
       } else {
         setPosts([]);
         setHasMore(false);
+        setCurrentPage(0);
         setError('No posts found.');
       }
     } catch (err) {
       if (err.name !== 'AbortError') {
         setError('Failed to search posts. Please try again later.');
+        setPosts([]);
+        setHasMore(false);
       }
     } finally {
       setLoading(false);
@@ -67,9 +77,12 @@ const PostListShadcn = () => {
     () =>
       debounce((term) => {
         if (term.trim()) {
-          performSearch(term, 0, 10); // Reset to page 0 on new search
+          setCurrentPage(0); // Reset page on new search
+          performSearch(term, 0, 10);
         } else {
-          fetchPosts();
+          setCurrentPage(0);
+          const controller = new AbortController();
+          fetchPosts(controller.signal);
         }
       }, 500), // waits 500ms after typing stops
     []
@@ -164,11 +177,23 @@ const PostListShadcn = () => {
           </div>
           {hasMore && (
             <div className="mt-6 text-center">
-              <Button variant="outline" onClick={() => {
-                setCurrentPage(prev => prev + 1);
-                performSearch(searchTerm, currentPage + 1, 10);
-              }}>
-                Load More
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  const nextPage = currentPage + 1;
+                  setCurrentPage(nextPage);
+                  if (searchTerm.trim()) {
+                    performSearch(searchTerm, nextPage, 10);
+                  } else {
+                    // For regular posts, you'd need a paginated fetchPosts function
+                    // Since the current fetchPosts doesn't support pagination,
+                    // we'll keep the current behavior for now
+                    fetchPosts();
+                  }
+                }}
+                disabled={loading}
+              >
+                {loading ? 'Loading...' : 'Load More'}
               </Button>
             </div>
           )}
