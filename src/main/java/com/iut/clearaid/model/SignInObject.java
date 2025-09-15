@@ -22,4 +22,15 @@ public class SignInObject {
     private String password;
     
     private Users role = Users.VOLUNTEER; // Default role
+    
+    // Volunteer-specific fields
+    private String fullName;
+    private String phone;
+    private String interests;
+    
+    // NGO-specific fields
+    private String organizationName;
+    private String registrationNumber;
+    private String address;
+    private String description;
 }

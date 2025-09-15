@@ -2,6 +2,7 @@ package com.iut.clearaid.controller;
 
 import com.iut.clearaid.model.SignInObject;
 import com.iut.clearaid.model.User;
+import com.iut.clearaid.model.enums.Users;
 import com.iut.clearaid.repository.UserRepository;
 import com.iut.clearaid.security.JwtUtil;
 import jakarta.validation.Valid;
@@ -13,6 +14,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
+import com.iut.clearaid.model.entity.NgoDetails;
+import com.iut.clearaid.model.entity.VolunteerDetails;
+import com.iut.clearaid.repository.NgoDetailsRepository;
+import com.iut.clearaid.repository.VolunteerDetailsRepository;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -25,6 +30,8 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
     private final JwtUtil jwtUtils;
+    private final NgoDetailsRepository ngoDetailsRepository;
+    private final VolunteerDetailsRepository volunteerDetailsRepository;
 
     @PostMapping("/signin")
     public ResponseEntity<String> authenticateUser(@Valid @RequestBody SignInObject user, BindingResult bindingResult) {
@@ -75,6 +82,27 @@ public class AuthController {
                     user.getRole()
             );
             userRepository.save(newUser);
+            
+            // Create NGO or Volunteer details based on role
+            if (user.getRole() == Users.NGO) {
+                NgoDetails ngoDetails = new NgoDetails();
+                ngoDetails.setUser(newUser);
+                ngoDetails.setOrganizationName(user.getOrganizationName());
+                ngoDetails.setRegistrationNumber(user.getRegistrationNumber());
+                ngoDetails.setAddress(user.getAddress());
+                ngoDetails.setDescription(user.getDescription());
+                ngoDetails.setLogoUrl(""); // Logo URL will be handled separately
+                ngoDetailsRepository.save(ngoDetails);
+            } else if (user.getRole() == Users.VOLUNTEER) {
+                VolunteerDetails volunteerDetails = new VolunteerDetails();
+                volunteerDetails.setUser(newUser);
+                volunteerDetails.setFullName(user.getFullName());
+                volunteerDetails.setPhone(user.getPhone());
+                volunteerDetails.setInterests(user.getInterests());
+                volunteerDetails.setProfilePicUrl(""); // Profile picture URL will be handled separately
+                volunteerDetailsRepository.save(volunteerDetails);
+            }
+            
             return ResponseEntity.ok("User registered successfully!");
         } catch (Exception e) {
             log.error("Registration error", e);
