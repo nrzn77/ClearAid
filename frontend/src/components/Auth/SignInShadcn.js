@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 
 // Shadcn UI components
 import { Button } from '../ui/button';
@@ -13,20 +14,22 @@ const SignInShadcn = () => {
   const [error, setError] = useState('');
   const { login, loading } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!username.trim() || !password.trim()) {
-      setError('Please enter both username and password');
+      toast.error('Please enter both username and password');
       return;
     }
     
     try {
       await login(username, password);
+      toast.success('Login successful! Welcome back.');
       navigate('/');
     } catch (err) {
-      setError('Invalid username or password. Please try again.');
+      toast.error('Invalid username or password. Please try again.');
       console.error('Login error:', err);
     }
   };

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 
 // Shadcn UI components
 import { Button } from '../ui/button';
@@ -27,6 +28,7 @@ const RegisterShadcn = () => {
   const [error, setError] = useState('');
   const { register, login, loading } = useAuth(); // include login here
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -119,11 +121,12 @@ const RegisterShadcn = () => {
       // Step 2: Auto-login the newly registered user
       await login(formData.username, formData.password);
 
-      // Step 3: Redirect directly to home/dashboard
+      // Step 3: Show success message and redirect
+      toast.success('Registration successful! Welcome to ClearAid.');
       navigate('/', { replace: true });
 
     } catch (err) {
-      setError('Registration failed. The username or email may already be in use.');
+      toast.error('Registration failed. The username or email may already be in use.');
       console.error('Registration error:', err);
     }
   };
