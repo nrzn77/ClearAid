@@ -83,6 +83,7 @@ public class WebSecurityConfig {
 
                                 // ✅ Allow GET requests to posts publicly
                                 .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+                                .requestMatchers("/payments/**").permitAll()
 
                                 // 🔒 Everything else requires authentication
                                 .anyRequest().authenticated()
